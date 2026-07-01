@@ -3,14 +3,64 @@
 #include <fstream>
 #include <sstream>
 
-static std::string escapeCsv(const std::string& value) {
-    std::string result = value;
-    for (std::size_t i = 0; i < result.size(); ++i) {
-        if (result[i] == ',') {
-            result[i] = ' ';
+static std::string escapeCsvField(const std::string& value) {
+    bool needsQuoting = false;
+    for (std::size_t i = 0; i < value.size(); ++i) {
+        if (value[i] == ',' || value[i] == '"' || value[i] == '\n') {
+            needsQuoting = true;
+            break;
         }
     }
+
+    if (!needsQuoting) {
+        return value;
+    }
+
+    std::string result = "\"";
+    for (std::size_t i = 0; i < value.size(); ++i) {
+        if (value[i] == '"') {
+            result += "\"\"";
+        } else {
+            result += value[i];
+        }
+    }
+    result += "\"";
     return result;
+}
+
+static void parseCsvLine(const std::string& line, std::string fields[], int fieldCount) {
+    int fieldIndex = 0;
+    bool inQuotes = false;
+    std::string current;
+
+    for (std::size_t i = 0; i < line.size() && fieldIndex < fieldCount; ++i) {
+        char c = line[i];
+        if (inQuotes) {
+            if (c == '"') {
+                if (i + 1 < line.size() && line[i + 1] == '"') {
+                    current += '"';
+                    ++i;
+                } else {
+                    inQuotes = false;
+                }
+            } else {
+                current += c;
+            }
+        } else {
+            if (c == '"') {
+                inQuotes = true;
+            } else if (c == ',') {
+                fields[fieldIndex] = current;
+                current.clear();
+                ++fieldIndex;
+            } else {
+                current += c;
+            }
+        }
+    }
+    if (fieldIndex < fieldCount) {
+        fields[fieldIndex] = current;
+    }
 }
 
 bool loadTasksFromFile(const std::string& filePath, std::vector<Task>& tasks) {
@@ -21,35 +71,26 @@ bool loadTasksFromFile(const std::string& filePath, std::vector<Task>& tasks) {
 
     tasks.clear();
     std::string line;
-    std::getline(file, line);
+
+    if (!std::getline(file, line)) {
+        return false;
+    }
 
     while (std::getline(file, line)) {
         if (line.empty()) {
             continue;
         }
 
-        std::stringstream ss(line);
-        std::string id;
-        std::string title;
-        std::string description;
-        std::string dueDate;
-        std::string priority;
-        std::string status;
-
-        std::getline(ss, id, ',');
-        std::getline(ss, title, ',');
-        std::getline(ss, description, ',');
-        std::getline(ss, dueDate, ',');
-        std::getline(ss, priority, ',');
-        std::getline(ss, status, ',');
+        std::string fields[6];
+        parseCsvLine(line, fields, 6);
 
         Task task;
-        task.id = std::atoi(id.c_str());
-        task.title = title;
-        task.description = description;
-        task.dueDate = dueDate;
-        task.priority = std::atoi(priority.c_str());
-        task.status = taskStatusFromString(status);
+        task.id = std::atoi(fields[0].c_str());
+        task.title = fields[1];
+        task.description = fields[2];
+        task.dueDate = fields[3];
+        task.priority = std::atoi(fields[4].c_str());
+        task.status = taskStatusFromString(fields[5]);
         tasks.push_back(task);
     }
 
@@ -63,11 +104,12 @@ bool saveTasksToFile(const std::string& filePath, const std::vector<Task>& tasks
     }
 
     file << "id,title,description,dueDate,priority,status\n";
-    for (const Task& task : tasks) {
+    for (std::size_t i = 0; i < tasks.size(); ++i) {
+        const Task& task = tasks[i];
         file << task.id << ","
-             << escapeCsv(task.title) << ","
-             << escapeCsv(task.description) << ","
-             << escapeCsv(task.dueDate) << ","
+             << escapeCsvField(task.title) << ","
+             << escapeCsvField(task.description) << ","
+             << escapeCsvField(task.dueDate) << ","
              << task.priority << ","
              << taskStatusToString(task.status) << "\n";
     }
