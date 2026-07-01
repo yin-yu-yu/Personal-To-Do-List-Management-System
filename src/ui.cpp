@@ -207,9 +207,21 @@ static void handleEditTask(std::vector<Task>& tasks) {
 
     std::cout << "\n（直接回车保留原值）\n\n";
 
-    std::string title       = readLine("请输入新标题：");
-    std::string description = readLine("请输入新描述：");
-    std::string dueDate     = readLine("请输入新截止日期：");
+auto readOptionalLine = [](const std::string& prompt) {
+    std::string v;
+    std::cout << prompt;
+    std::getline(std::cin, v);
+    const auto start = v.find_first_not_of(" \t");
+    if (start == std::string::npos) {
+        return std::string{};
+    }
+    const auto end = v.find_last_not_of(" \t");
+    return v.substr(start, end - start + 1);
+};
+
+std::string title       = readOptionalLine("请输入新标题：");
+std::string description = readOptionalLine("请输入新描述：");
+std::string dueDate     = readOptionalLine("请输入新截止日期：");
     int priority            = readInt("请输入新优先级（1-5，输入0保留原值）：");
 
     // 保留原值
