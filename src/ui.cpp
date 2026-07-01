@@ -59,9 +59,9 @@ static int readIntInRange(const std::string& prompt, int min, int max) {
     }
 }
 
-// 读取菜单选项（0-5）
+// 读取菜单选项（0-7）
 static int readMenuChoice() {
-    return readIntInRange("请选择功能：", 0, 5);
+    return readIntInRange("请选择功能：", 0, 7);
 }
 
 // 确认操作（返回 true 表示用户确认）
@@ -97,6 +97,8 @@ void showMainMenu() {
     std::cout << "    3. 修改待办事项\n";
     std::cout << "    4. 删除待办事项\n";
     std::cout << "    5. 标记为已完成\n";
+    std::cout << "    6. 搜索待办事项\n";
+    std::cout << "    7. 查看统计信息\n";
     std::cout << "    0. 保存并退出\n";
     std::cout << "--------------------------------------------\n";
 }
@@ -160,6 +162,17 @@ void showTasks(const std::vector<Task>& tasks) {
     std::cout << "  共 " << tasks.size() << " 条待办事项\n";
 }
 
+// 显示单条待办事项的详细信息
+static void showTaskDetail(const Task& task) {
+    std::cout << "\n--- 待办事项详情 ---\n";
+    std::cout << "ID：" << task.id << "\n";
+    std::cout << "标题：" << task.title << "\n";
+    std::cout << "描述：" << task.description << "\n";
+    std::cout << "截止日期：" << task.dueDate << "\n";
+    std::cout << "优先级：" << task.priority << "\n";
+    std::cout << "状态：" << taskStatusToString(task.status) << "\n";
+}
+
 // ========== 功能处理函数 ==========
 
 static void handleAddTask(std::vector<Task>& tasks) {
@@ -194,46 +207,26 @@ static void handleEditTask(std::vector<Task>& tasks) {
         return;
     }
 
-    std::cout << "\n正在修改 ID=" << id << " 的待办事项（直接回车保留原值）：\n\n";
+    showTaskDetail(*task);
 
-    // 读取新值，空输入则保留原值
-    std::string input;
-    std::cout << "原标题：" << task->title << "\n";
-    std::cout << "新标题：";
-    std::getline(std::cin, input);
-    if (!input.empty()) {
-        task->title = input;
-    }
+    std::cout << "\n（直接回车保留原值）\n\n";
 
-    std::cout << "原描述：" << task->description << "\n";
-    std::cout << "新描述：";
-    std::getline(std::cin, input);
-    if (!input.empty()) {
-        task->description = input;
-    }
+    std::string title       = readLine("请输入新标题：");
+    std::string description = readLine("请输入新描述：");
+    std::string dueDate     = readLine("请输入新截止日期：");
+    int priority            = readInt("请输入新优先级（1-5，输入0保留原值）：");
 
-    std::cout << "原截止日期：" << task->dueDate << "\n";
-    std::cout << "新截止日期：";
-    std::getline(std::cin, input);
-    if (!input.empty()) {
-        task->dueDate = input;
-    }
+    // 保留原值
+    if (title.empty())       title       = task->title;
+    if (description.empty()) description = task->description;
+    if (dueDate.empty())     dueDate     = task->dueDate;
+    if (priority == 0)       priority    = task->priority;
 
-    std::cout << "原优先级：" << task->priority << "\n";
-    std::cout << "新优先级（1-5，0=不修改）：";
-    int newPriority = 0;
-    if (std::cin >> newPriority) {
-        clearInput();
-        if (newPriority >= 1 && newPriority <= 5) {
-            task->priority = newPriority;
-        } else if (newPriority != 0) {
-            std::cout << "优先级无效，保留原值。\n";
-        }
+    if (updateTask(*task, title, description, dueDate, priority)) {
+        std::cout << "\n✓ 待办事项修改成功！\n";
     } else {
-        clearInput();
+        std::cout << "\n修改失败，请检查输入是否合法。\n";
     }
-
-    std::cout << "\n✓ 待办事项修改成功！\n";
 }
 
 static void handleDeleteTask(std::vector<Task>& tasks) {
@@ -285,13 +278,67 @@ static void handleCompleteTask(std::vector<Task>& tasks) {
         return;
     }
 
-    if (task->status == TaskStatus::Completed) {
+    if (markTaskCompleted(*task)) {
+        std::cout << "✓「" << task->title << "」已标记为完成！\n";
+    } else {
         std::cout << "该待办事项已经是「已完成」状态。\n";
+    }
+}
+
+static void handleSearchTasks(std::vector<Task>& tasks) {
+    std::cout << "\n========== 搜索待办事项 ==========\n\n";
+    std::cout << "1. 按标题关键字搜索\n";
+    std::cout << "2. 按状态筛选（待完成）\n";
+    std::cout << "3. 按状态筛选（已完成）\n";
+    std::cout << "4. 按优先级筛选\n";
+    int choice = readIntInRange("请选择搜索方式：", 1, 4);
+
+    std::vector<Task*> results;
+
+    switch (choice) {
+        case 1: {
+            std::string keyword = readLine("请输入标题关键字：");
+            results = findTasksByTitle(tasks, keyword);
+            break;
+        }
+        case 2: {
+            results = findTasksByStatus(tasks, TaskStatus::Pending);
+            break;
+        }
+        case 3: {
+            results = findTasksByStatus(tasks, TaskStatus::Completed);
+            break;
+        }
+        case 4: {
+            int priority = readIntInRange("请输入要筛选的优先级（1-5）：", 1, 5);
+            results = findTasksByPriority(tasks, priority);
+            break;
+        }
+    }
+
+    if (results.empty()) {
+        std::cout << "\n未找到匹配的待办事项。\n";
         return;
     }
 
-    task->status = TaskStatus::Completed;
-    std::cout << "✓「" << task->title << "」已标记为完成！\n";
+    std::cout << "\n找到 " << results.size() << " 条匹配结果：\n";
+    std::cout << "ID | 标题 | 描述 | 截止日期 | 优先级 | 状态\n";
+    std::cout << "--------------------------------------------------\n";
+    for (const Task* task : results) {
+        std::cout << task->id << " | "
+                  << task->title << " | "
+                  << task->description << " | "
+                  << task->dueDate << " | "
+                  << task->priority << " | "
+                  << taskStatusToString(task->status) << "\n";
+    }
+}
+
+static void handleShowStats(const std::vector<Task>& tasks) {
+    std::cout << "\n========== 统计信息 ==========\n\n";
+    std::cout << "待办事项总数：" << countAllTasks(tasks) << "\n";
+    std::cout << "待完成数量：" << countTasksByStatus(tasks, TaskStatus::Pending) << "\n";
+    std::cout << "已完成数量：" << countTasksByStatus(tasks, TaskStatus::Completed) << "\n";
 }
 
 // ========== 主程序循环 ==========
@@ -328,6 +375,12 @@ void runApplication(const std::string& dataFilePath) {
                 break;
             case 5:
                 handleCompleteTask(tasks);
+                break;
+            case 6:
+                handleSearchTasks(tasks);
+                break;
+            case 7:
+                handleShowStats(tasks);
                 break;
             case 0:
                 saveTasksToFile(dataFilePath, tasks);
