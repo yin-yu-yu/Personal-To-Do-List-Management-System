@@ -75,11 +75,7 @@ static bool confirm(const std::string& message) {
 // ========== 公开函数 ==========
 
 void clearScreen() {
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
+    std::cout << "\x1B[2J\x1B[H" << std::flush;
 }
 
 void pauseForUser() {
