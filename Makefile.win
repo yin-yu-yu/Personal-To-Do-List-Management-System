@@ -1,0 +1,37 @@
+# Project: PersonalToDoList
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = src/main.o src/task.o src/storage.o src/ui.o
+LINKOBJ  = src/main.o src/task.o src/storage.o src/ui.o
+LIBS     = -L"D:/tools/Dev-Cpp/MinGW64/lib" -L"D:/tools/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc
+INCS     = -I"D:/tools/Dev-Cpp/MinGW64/include" -I"D:/tools/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"D:/tools/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"include"
+CXXINCS  = -I"D:/tools/Dev-Cpp/MinGW64/include" -I"D:/tools/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"D:/tools/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"D:/tools/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++" -I"include"
+BIN      = PersonalToDoList.exe
+CXXFLAGS = $(CXXINCS) -std=c++11
+CFLAGS   = $(INCS) -std=c++11
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+src/main.o: src/main.cpp
+	$(CPP) -c src/main.cpp -o src/main.o $(CXXFLAGS)
+
+src/task.o: src/task.cpp
+	$(CPP) -c src/task.cpp -o src/task.o $(CXXFLAGS)
+
+src/storage.o: src/storage.cpp
+	$(CPP) -c src/storage.cpp -o src/storage.o $(CXXFLAGS)
+
+src/ui.o: src/ui.cpp
+	$(CPP) -c src/ui.cpp -o src/ui.o $(CXXFLAGS)
