@@ -6,6 +6,10 @@ Focused=3
 =======
 Order=0,2,1,5,3
 Focused=3
+CursorCol=1
+CursorRow=1
+TopLine=1
+LeftChar=1
 [Editor_0]
 CursorCol=1
 CursorRow=1
