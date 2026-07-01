@@ -4,6 +4,9 @@
 *.obj
 *.out
 
+# Dev-C++ 自动生成的 Makefile
+Makefile.win
+
 # IDE / 编辑器
 .vscode/
 .idea/
@@ -17,4 +20,8 @@ Thumbs.db
 # 临时文件
 *.tmp
 *.log
+
+# 测试产物
+test/*.exe
+test/*.csv
 

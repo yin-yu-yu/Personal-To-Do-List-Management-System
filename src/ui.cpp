@@ -30,7 +30,6 @@ static std::string readLine(const std::string& prompt) {
         value = value.substr(start, end - start + 1);
         return value;
     }
-    return value;
 }
 
 // 读取一个整数，带有输入校验
@@ -208,11 +207,11 @@ static void handleEditTask(std::vector<Task>& tasks) {
 
     showTaskDetail(*task);
 
-    std::cout << "\n（直接回车保留原值）\n";
+    std::cout << "\n（直接回车保留原值，优先级输入 0 保留原值）\n";
     std::string title       = readLine("请输入新标题：");
     std::string description = readLine("请输入新描述：");
     std::string dueDate     = readLine("请输入新截止日期：");
-    int priority            = readInt("请输入新优先级（1-5，0=不修改）：");
+    int priority            = readIntInRange("请输入新优先级（1-5，0=不修改）：", 0, 5);
 
     // 保留原值
     if (title.empty())       title       = task->title;
