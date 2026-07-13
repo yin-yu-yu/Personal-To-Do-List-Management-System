@@ -81,8 +81,8 @@ bool loadTasksFromFile(const std::string& filePath, std::vector<Task>& tasks) {
             continue;
         }
 
-        std::string fields[6];
-        parseCsvLine(line, fields, 6);
+        std::string fields[7];
+        parseCsvLine(line, fields, 7);
 
         Task task;
         task.id = std::atoi(fields[0].c_str());
@@ -91,6 +91,7 @@ bool loadTasksFromFile(const std::string& filePath, std::vector<Task>& tasks) {
         task.dueDate = fields[3];
         task.priority = std::atoi(fields[4].c_str());
         task.status = taskStatusFromString(fields[5]);
+        task.tag = fields[6];
         tasks.push_back(task);
     }
 
@@ -103,7 +104,7 @@ bool saveTasksToFile(const std::string& filePath, const std::vector<Task>& tasks
         return false;
     }
 
-    file << "id,title,description,dueDate,priority,status\n";
+    file << "id,title,description,dueDate,priority,status,tag\n";
     for (std::size_t i = 0; i < tasks.size(); ++i) {
         const Task& task = tasks[i];
         file << task.id << ","
@@ -111,9 +112,37 @@ bool saveTasksToFile(const std::string& filePath, const std::vector<Task>& tasks
              << escapeCsvField(task.description) << ","
              << escapeCsvField(task.dueDate) << ","
              << task.priority << ","
-             << taskStatusToString(task.status) << "\n";
+             << taskStatusToString(task.status) << ","
+             << escapeCsvField(task.tag) << "\n";
     }
 
     return true;
+}
+
+bool backupTasksFile(const std::string& sourcePath) {
+    std::ifstream src(sourcePath.c_str(), std::ios::binary);
+    if (!src.is_open()) {
+        return false;
+    }
+
+    std::string backupPath = sourcePath;
+    size_t extPos = backupPath.rfind(".csv");
+    if (extPos != std::string::npos) {
+        backupPath = backupPath.substr(0, extPos) + "_backup.csv";
+    } else {
+        backupPath += "_backup";
+    }
+
+    std::ofstream dst(backupPath.c_str(), std::ios::binary);
+    if (!dst.is_open()) {
+        return false;
+    }
+
+    dst << src.rdbuf();
+    return true;
+}
+
+bool restoreTasksFromBackup(const std::string& backupPath, std::vector<Task>& tasks) {
+    return loadTasksFromFile(backupPath, tasks);
 }
 

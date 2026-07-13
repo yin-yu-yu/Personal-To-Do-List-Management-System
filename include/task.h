@@ -16,42 +16,46 @@ struct Task {
     std::string dueDate;
     int priority;
     TaskStatus status;
+    std::string tag;
 };
 
-// Ôö ¡ª Ìí¼Ó´ý°ìÊÂÏî
+// ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 int getNextTaskId(const std::vector<Task>& tasks);
 void addTask(std::vector<Task>& tasks, const Task& task);
 
-// É¾ ¡ª É¾³ý´ý°ìÊÂÏî
+// É¾ ï¿½ï¿½ É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 bool deleteTaskById(std::vector<Task>& tasks, int id);
 
-// ¸Ä ¡ª ÐÞ¸Ä´ý°ìÊÂÏî
+// ï¿½ï¿½ ï¿½ï¿½ ï¿½Þ¸Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 Task* findTaskById(std::vector<Task>& tasks, int id);
 bool updateTask(Task& task,
                 const std::string& title,
                 const std::string& description,
                 const std::string& dueDate,
-                int priority);
+                int priority,
+                const std::string& tag);
 bool markTaskCompleted(Task& task);
 bool markTaskPending(Task& task);
 
-// ²é ¡ª ²éÑ¯´ý°ìÊÂÏî
+// ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 std::vector<Task*> findTasksByTitle(std::vector<Task>& tasks,
                                     const std::string& keyword);
 std::vector<Task*> findTasksByStatus(std::vector<Task>& tasks,
                                      TaskStatus status);
 std::vector<Task*> findTasksByPriority(std::vector<Task>& tasks,
                                        int priority);
+std::vector<Task*> findTasksByTag(std::vector<Task>& tasks,
+                                  const std::string& tag);
 
-// ÅÅÐò
+// ï¿½ï¿½ï¿½ï¿½
 void sortTasksByPriority(std::vector<Task>& tasks, bool ascending = true);
 void sortTasksByDueDate(std::vector<Task>& tasks, bool ascending = true);
 
-// Í³¼Æ
+// Í³ï¿½ï¿½
 int countTasksByStatus(const std::vector<Task>& tasks, TaskStatus status);
 int countAllTasks(const std::vector<Task>& tasks);
 
-// ¹¤¾ß
+// ï¿½ï¿½ï¿½ï¿½
 std::string taskStatusToString(TaskStatus status);
 TaskStatus taskStatusFromString(const std::string& value);
 
